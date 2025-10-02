@@ -1,0 +1,269 @@
+import {
+  FC,
+  MouseEventHandler,
+  FormEventHandler,
+  useMemo,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
+
+import { TokenInfo, TokenKinds } from "@airswap/utils";
+
+import { AppTokenInfo } from "../../entities/AppTokenInfo/AppTokenInfo";
+import { getTokenImage } from "../../entities/AppTokenInfo/AppTokenInfoHelpers";
+import {
+  AmountInput,
+  AmountAndDetailsContainer,
+  ContainingButton,
+  TokenSelectContainer,
+  StyledSelectItem,
+  StyledSelector,
+  PlaceHolderBar,
+  PlaceholderContainer,
+  StyledLabel,
+  StyledDownArrow,
+  StyledSelectButtonContent,
+  TokenLogoLeft,
+  TokenLogoRight,
+  MaxButton,
+  InputAndMaxButtonWrapper,
+  InfoLabel,
+  SubText,
+  TokenAccountButton,
+  TokenSelectOverflowContainer,
+  StyledTokenSelectBackground,
+} from "./TokenSelect.styles";
+import { getTokenText } from "./helpers";
+
+export type TokenSelectProps = {
+  /**
+   * Whether or not the token selector is read only, e.g. when used to display
+   * a quote.
+   */
+  readOnly: boolean;
+  /**
+   * Whether or not to display an amount input with the token select, or to
+   * display a placeholder, e.g. when used to select received token where amount
+   * isn't known yet.
+   */
+  includeAmountInput: boolean;
+  /**
+   * Label - note that this is not shown if the field is readOnly.
+   */
+  label: string;
+  /**
+   * Metadata for currently selected token
+   */
+  selectedToken: AppTokenInfo | null;
+  /**
+   * The kind of token (ERC20, ERC721, ERC1155)
+   */
+  tokenKind?: TokenKinds;
+  /**
+   * Called when the user has clicked on the token dropdown to change token
+   */
+  onChangeTokenClicked?: MouseEventHandler<HTMLButtonElement>;
+  /**
+   * Called when user clicks the 'use max' button. Presence of this prop is used
+   * to imply presence of use max button in DOM.
+   */
+  onMaxClicked?: MouseEventHandler<HTMLButtonElement>;
+  /**
+   * Called when user's mouse enters 'info' label.
+   */
+  onInfoLabelMouseEnter?: () => void;
+  /**
+   * Called when user's mouse leaves 'info' label.
+   */
+  onInfoLabelMouseLeave?: () => void;
+  /**
+   * Currently selected amount. Not used if `includeAmountInput` is false.
+   */
+  amount?: string | null;
+  /**
+   * Called when the amount is changed. Input change event is passed.
+   */
+  onAmountChange?: FormEventHandler<HTMLInputElement>;
+  /**
+   * Used for showing requesting amount state
+   */
+  isRequestingAmount?: boolean;
+  /**
+   * Used for showing requesting token state
+   */
+  isRequestingToken?: boolean;
+  /**
+   * Whether or not the token select is disabled
+   */
+  isSelectTokenDisabled?: boolean;
+  /**
+   * Show max button
+   */
+  showMaxButton?: boolean;
+  /**
+   * Show max info button
+   */
+  showMaxInfoButton?: boolean;
+  /**
+   * Used for showing quote style
+   */
+  showTokenContractLink?: boolean;
+  isQuote?: boolean;
+  hasError?: boolean;
+  subText?: string;
+};
+
+const TokenSelect: FC<TokenSelectProps> = ({
+  readOnly,
+  includeAmountInput,
+  label,
+  selectedToken,
+  subText,
+  onChangeTokenClicked,
+  onMaxClicked,
+  onInfoLabelMouseEnter,
+  onInfoLabelMouseLeave,
+  amount,
+  onAmountChange,
+  isRequestingAmount = false,
+  isRequestingToken = false,
+  isSelectTokenDisabled = false,
+  isQuote = false,
+  hasError = false,
+  tokenKind,
+  showMaxButton = false,
+  showMaxInfoButton = false,
+  showTokenContractLink = false,
+}) => {
+  const { t } = useTranslation();
+  const [isTokenFocused, setTokenFocused] = useState(false);
+  const [isAmountFocused, setIsAmountFocused] = useState(false);
+  const [isAmountHovered, setIsAmountHovered] = useState(false);
+  const [isMaxButtonFocused, setIsMaxButtonFocused] = useState(false);
+
+  const tokenText = useMemo(() => {
+    return getTokenText(selectedToken, readOnly);
+  }, [selectedToken, readOnly]);
+  const tokenLogoImage = selectedToken
+    ? getTokenImage(selectedToken)
+    : undefined;
+
+  const isNft =
+    tokenKind === TokenKinds.ERC721 || tokenKind === TokenKinds.ERC1155;
+
+  const handleAmountFocus = () => setIsAmountFocused(true);
+  const handleAmountBlur = () => setIsAmountFocused(false);
+  const handleAmountMouseEnter = () => setIsAmountHovered(true);
+  const handleAmountMouseLeave = () => setIsAmountHovered(false);
+  const handleMaxButtonFocus = () => setIsMaxButtonFocused(true);
+  const handleMaxButtonBlur = () => setIsMaxButtonFocused(false);
+  const handleTokenFocus = () => setTokenFocused(true);
+  const handleTokenBlur = () => setTokenFocused(false);
+
+  return (
+    <TokenSelectContainer
+      isQuote={isQuote}
+      isLoading={isRequestingAmount}
+      isAmountFocused={isAmountFocused || isMaxButtonFocused || isAmountHovered}
+      isTokenFocused={isTokenFocused}
+      showTokenContractLink={showTokenContractLink}
+    >
+      <StyledTokenSelectBackground />
+      <TokenSelectOverflowContainer>
+        {selectedToken && showTokenContractLink && (
+          <TokenAccountButton
+            chainId={selectedToken.chainId}
+            address={selectedToken.address}
+            onBlur={handleTokenBlur}
+            onFocus={handleTokenFocus}
+            onMouseEnter={handleTokenFocus}
+            onMouseLeave={handleTokenBlur}
+          />
+        )}
+        {!isRequestingToken ? (
+          <ContainingButton
+            tokenKind={tokenKind}
+            disabled={isSelectTokenDisabled || readOnly}
+            onClick={onChangeTokenClicked}
+            onBlur={handleTokenBlur}
+            onFocus={handleTokenFocus}
+            onMouseEnter={handleTokenFocus}
+            onMouseLeave={handleTokenBlur}
+          >
+            <TokenLogoLeft logoURI={tokenLogoImage} />
+            <StyledSelector>
+              <StyledLabel>{label}</StyledLabel>
+              <StyledSelectItem isNft={isNft}>
+                <StyledSelectButtonContent>
+                  {tokenText}
+                </StyledSelectButtonContent>
+                <StyledDownArrow
+                  $invisible={isSelectTokenDisabled || readOnly}
+                />
+              </StyledSelectItem>
+            </StyledSelector>
+          </ContainingButton>
+        ) : (
+          <PlaceholderContainer>
+            <StyledLabel>{label}</StyledLabel>
+            <PlaceHolderBar />
+          </PlaceholderContainer>
+        )}
+        {includeAmountInput && selectedToken && !isRequestingAmount ? (
+          <InputAndMaxButtonWrapper>
+            <AmountAndDetailsContainer>
+              <AmountInput
+                // @ts-ignore
+                inputMode="decimal"
+                hasSubtext={!!subText}
+                tabIndex={readOnly ? -1 : 0}
+                autoComplete="off"
+                pattern="^[0-9]*[.,]?[0-9]*$"
+                minLength={1}
+                maxLength={79}
+                spellCheck={false}
+                value={amount}
+                disabled={readOnly || tokenKind === TokenKinds.ERC721}
+                onBlur={handleAmountBlur}
+                onChange={onAmountChange}
+                onFocus={handleAmountFocus}
+                onMouseEnter={handleAmountMouseEnter}
+                onMouseLeave={handleAmountMouseLeave}
+                placeholder="0.00"
+              />
+              {subText && <SubText>{subText}</SubText>}
+            </AmountAndDetailsContainer>
+            {onMaxClicked && showMaxButton && !readOnly && (
+              <MaxButton
+                onClick={onMaxClicked}
+                onBlur={handleMaxButtonBlur}
+                onFocus={handleMaxButtonFocus}
+                onMouseEnter={handleMaxButtonFocus}
+                onMouseLeave={handleMaxButtonBlur}
+              >
+                {t("common.max")}
+              </MaxButton>
+            )}
+            {showMaxInfoButton && !showMaxButton && !readOnly && (
+              <InfoLabel
+                onMouseOver={onInfoLabelMouseEnter}
+                onFocus={onInfoLabelMouseEnter}
+                onMouseOut={onInfoLabelMouseLeave}
+                onBlur={onInfoLabelMouseLeave}
+              >
+                i
+              </InfoLabel>
+            )}
+            <TokenLogoRight logoURI={tokenLogoImage} />
+          </InputAndMaxButtonWrapper>
+        ) : (
+          <PlaceholderContainer>
+            <PlaceHolderBar />
+          </PlaceholderContainer>
+        )}
+      </TokenSelectOverflowContainer>
+    </TokenSelectContainer>
+  );
+};
+
+export default TokenSelect;
