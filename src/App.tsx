@@ -15,7 +15,7 @@ import { selectTheme } from "./features/userSettings/userSettingsSlice";
 import useCustomServer from "./hooks/useCustomServer";
 import useSystemTheme from "./hooks/useSystemTheme";
 import "./i18n/i18n";
-import "./sentry";
+// import "./sentry";
 import GlobalStyle from "./style/GlobalStyle";
 import { darkTheme, lightTheme } from "./style/themes";
 import { prioritizedConnectors } from "./web3-connectors/connections";

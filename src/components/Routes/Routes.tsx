@@ -1,8 +1,7 @@
 import React, { FC } from "react";
-import { Route as ReactRouterDomRoute, Switch } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 
-import * as Sentry from "@sentry/react";
-
+// import * as Sentry from "@sentry/react";
 import useBalances from "../../features/balances/balancesHooks";
 import { useDelegateRules } from "../../features/delegateRules/delegateRulesHooks";
 import useMetadata from "../../features/metadata/metadataHooks";
@@ -19,7 +18,7 @@ import OtcOrderDetail from "../../pages/OtcOrderDetail/OtcOrderDetail";
 import SwapPage from "../../pages/Swap/Swap";
 import { AppRoutes } from "../../routes";
 
-const Route = Sentry.withSentryRouting(ReactRouterDomRoute);
+// const Route = Sentry.withSentryRouting(ReactRouterDomRoute);
 
 const Routes: FC = () => {
   useBalances();
